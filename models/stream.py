@@ -37,6 +37,7 @@ class stream(nn.Module):
 
 	def forward(self, reference, inverse):
 		for i in range(4):
+			print(reference.dtype)
 			reference = self.stream[0 + i * 5](reference)
 			reference = self.stream[1 + i * 5](reference)
 			inverse = self.stream[0 + i * 5](inverse)
@@ -66,7 +67,7 @@ class stream(nn.Module):
 
 		# print(inverse.size(), discrimnative.size())
 		# up_sample = cv2.resize(inverse, (inverse.size()[2]*2, inverse.size()[3]*2), interpolation=cv2.INTER_NEAREST)
-		up_sample = nn.functional.interpolate(inverse, (inverse.size()[2]*2, inverse.size()[3]*2), mode='nearest')
+		up_sample = nn.functional.interpolate(inverse, (discrimnative.size()[2], discrimnative.size()[3]), mode='nearest')
 		g = Conv(up_sample)
 		# print(g.size(), discrimnative.size())
 		tmp = g * discrimnative + discrimnative

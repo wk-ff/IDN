@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from stream import stream
+from models.stream import stream
 
 class net(nn.Module):
     def __init__(self):
@@ -18,7 +18,12 @@ class net(nn.Module):
         )
         
 
-    def forward(self, reference, reference_inverse, test, test_inverse):
+    def forward(self, inputs):
+        reference = inputs[:, 0:3, :, :]
+        reference_inverse = 255 - reference
+        test = inputs[:, 3:6, :, :]
+        test_inverse = 255 - test
+
         reference, reference_inverse = self.stream(reference, reference_inverse)
         test, test_inverse = self.stream(test, test_inverse)
 
