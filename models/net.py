@@ -19,9 +19,10 @@ class net(nn.Module):
         
 
     def forward(self, inputs):
-        reference = inputs[:, 0:3, :, :]
+        half = inputs.size()[1] // 2
+        reference = inputs[:, :half, :, :]
         reference_inverse = 255 - reference
-        test = inputs[:, 3:6, :, :]
+        test = inputs[:, half:, :, :]
         test_inverse = 255 - test
 
         reference, reference_inverse = self.stream(reference, reference_inverse)

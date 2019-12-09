@@ -8,7 +8,7 @@ class stream(nn.Module):
 		super(stream, self).__init__()
 
 		self.stream = nn.Sequential(
-			nn.Conv2d(3, 32, 3, stride=1, padding=1),
+			nn.Conv2d(1, 32, 3, stride=1, padding=1),
 			nn.ReLU(inplace=True),
 			nn.Conv2d(32, 32, 3, stride=1, padding=1),
 			nn.ReLU(inplace=True),
@@ -37,7 +37,6 @@ class stream(nn.Module):
 
 	def forward(self, reference, inverse):
 		for i in range(4):
-			print(reference.dtype)
 			reference = self.stream[0 + i * 5](reference)
 			reference = self.stream[1 + i * 5](reference)
 			inverse = self.stream[0 + i * 5](inverse)

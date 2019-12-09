@@ -13,3 +13,11 @@ class loss(nn.Module):
         loss_2 = self.bce_loss(y, label)
         loss_3 = self.bce_loss(z, label)
         return alpha_1*loss_1 + alpha_2*loss_2 + alpha_3*loss_3
+
+# def loss(x, y, z, label):
+#     bce_loss = nn.BCELoss()
+#     alpha_1, alpha_2, alpha_3 = 1, 1, 1
+#     loss_1 = self.bce_loss(x, label)
+#     loss_2 = self.bce_loss(y, label)
+#     loss_3 = self.bce_loss(z, label)
+#     return torch.mean(torch.add(torch.add(torch.mul(alpha_1, loss_1), torch.mul(alpha_2, loss_2)), torch.mul(alpha_3, loss_3)))
