@@ -8,11 +8,13 @@ class loss(nn.Module):
 
     
     def forward(self, x, y, z, label):
-        alpha_1, alpha_2, alpha_3 = 1, 1, 1
+        alpha_1, alpha_2, alpha_3 = 0.3, 0.4, 0.3
+        label = label.view(-1, 1)
+        # print(max(x), max(label))
         loss_1 = self.bce_loss(x, label)
         loss_2 = self.bce_loss(y, label)
         loss_3 = self.bce_loss(z, label)
-        return alpha_1*loss_1 + alpha_2*loss_2 + alpha_3*loss_3
+        return torch.mean(alpha_1*loss_1 + alpha_2*loss_2 + alpha_3*loss_3)
 
 # def loss(x, y, z, label):
 #     bce_loss = nn.BCELoss()

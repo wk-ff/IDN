@@ -34,7 +34,7 @@ class dataset(data.Dataset):
         return len(self.labels)
 
     def __getitem__(self, index):
-        return torch.FloatTensor(self.datas[index]), self.labels[index]
+        return torch.FloatTensor(self.datas[index]), float(self.labels[index])
 
 # img = cv2.imread('dataset/original_2_9.png')
 # print(img.shape)
