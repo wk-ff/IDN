@@ -4,12 +4,12 @@ import cv2
 import numpy as np
 
 class dataset(data.Dataset):
-    def __init__(self, root='CEDAR/', train=True):
-        super(dataset, self).__init__()
+    def __init__(self, root='dataset/CEDAR/', train=True):
+        super().__init__()
         if train:
-            path = root + 'gray_train.txt'
+            path = root + 'train_pairs.txt'
         else:
-            path = root + 'gray_test.txt'
+            path = root + 'test_pairs.txt'
         
         with open(path, 'r') as f:
             lines = f.readlines()
@@ -18,7 +18,6 @@ class dataset(data.Dataset):
         self.datas = []
         for line in lines:
             refer, test, label = line.split()
-            # print(root + refer)
             refer_img = cv2.imread(root + refer, 0)
             test_img = cv2.imread(root + test, 0)
             refer_img = refer_img.reshape(-1, refer_img.shape[0], refer_img.shape[1])
@@ -28,13 +27,9 @@ class dataset(data.Dataset):
             self.datas.append(refer_test)
             self.labels.append(int(label))
 
-        # print(self.datas[0].shape)
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, index):
         return torch.FloatTensor(self.datas[index]), float(self.labels[index])
-
-# img = cv2.imread('dataset/original_2_9.png')
-# print(img.shape)
