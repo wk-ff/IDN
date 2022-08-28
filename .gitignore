@@ -3,6 +3,9 @@
 
 /dataset/CEDAR
 /dataset/BHSig260
+/scalar
+*.pth
+*.txt
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
