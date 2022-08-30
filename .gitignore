@@ -3,6 +3,8 @@
 
 /dataset/CEDAR
 /dataset/BHSig260
+/dataset/ChiSig
+/dataset/sigComp
 /scalar
 *.pth
 *.txt

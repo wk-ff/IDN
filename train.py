@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from dataset.dataset import dataset
 from models.net import net
-from loss import loss
+from loss import Loss
 # os.environ['CUDA_VISIBLE_DEVICES']='1'
 
 if torch.cuda.is_available():
@@ -33,73 +33,82 @@ def compute_accuracy(predicted, labels):
     return accuracy
 
 
-BATCH_SIZE = 32
-EPOCHS = 1
-LEARNING_RATE = 0.001
+def train(dataset_root, model_prefix):
 
-np.random.seed(0)
-torch.manual_seed(1)
+    BATCH_SIZE = 32
+    EPOCHS = 1
+    LEARNING_RATE = 0.001
 
-train_set = dataset(train=True)
-test_set = dataset(train=False)
-train_loader = torch.utils.data.DataLoader(
-    train_set, batch_size=BATCH_SIZE, shuffle=True)
-test_loader = torch.utils.data.DataLoader(
-    test_set, batch_size=2*BATCH_SIZE, shuffle=False)
+    np.random.seed(0)
+    torch.manual_seed(1)
 
-model = net().to(device)
+    train_set = dataset(train=True, root=dataset_root)
+    test_set = dataset(train=False, root=dataset_root)
+    train_loader = torch.utils.data.DataLoader(
+        train_set, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(
+        test_set, batch_size=2*BATCH_SIZE, shuffle=False)
 
-criterion = loss()
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-# optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
+    model = net().to(device)
 
-writer = SummaryWriter(log_dir='scalar')
+    criterion = Loss()
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    # optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
-criterion = criterion.to(device)
-iter_n = 0
-t = time.strftime("%m-%d-%H-%M", time.localtime())
-print(len(train_loader))
-best_test_accuracy = 0
-for epoch in tqdm(range(1, EPOCHS + 1)):
-    for i, (inputs, labels) in enumerate(tqdm(train_loader)):
-        torch.cuda.empty_cache()
+    writer = SummaryWriter(log_dir='scalar')
 
-        optimizer.zero_grad()
+    criterion = criterion.to(device)
+    iter_n = 0
+    t = time.strftime("%m-%d-%H-%M", time.localtime())
+    print(len(train_loader))
+    best_test_accuracy = 0
+    for epoch in tqdm(range(1, EPOCHS + 1)):
+        for i, (inputs, labels) in enumerate(tqdm(train_loader)):
+            torch.cuda.empty_cache()
 
-        labels = labels.float()
-        inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()
 
-        predicted = model(inputs)
+            labels = labels.float()
+            inputs, labels = inputs.to(device), labels.to(device)
 
-        loss = criterion(*predicted, labels)
+            predicted = model(inputs)
 
-        loss.backward()
-        optimizer.step()
+            loss = criterion(*predicted, labels)
 
-        accuracy = compute_accuracy(predicted, labels)
+            loss.backward()
+            optimizer.step()
 
-        writer.add_scalar(t+'/train_loss', loss.item(), iter_n)
-        writer.add_scalar(t+'/train_accuracy', accuracy, iter_n)
-        print(f'loss: {loss.item()}, accuracy: {accuracy}')
+            accuracy = compute_accuracy(predicted, labels)
 
-        if i % 100 == 0:
-            with torch.no_grad():
-                accuracys = []
-                for i_, (inputs_, labels_) in enumerate(test_loader):
-                    labels_ = labels_.float()
-                    inputs_, labels_ = inputs_.to(device), labels_.to(device)
-                    predicted_ = model(inputs_)
-                    accuracys.append(compute_accuracy(predicted_, labels_))
-                accuracy_ = sum(accuracys) / len(accuracys)
-                writer.add_scalar(t+'/test_accuracy', accuracy_, iter_n)
-            print(f'test loss:{accuracy_:.6f}')
-            if accuracy_ >= best_test_accuracy:
-                best_test_accuracy = accuracy_
-                torch.save(model.state_dict(), f'model_{accuracy_:%}.pth')
+            writer.add_scalar(t+'/train_loss', loss.item(), iter_n)
+            writer.add_scalar(t+'/train_accuracy', accuracy, iter_n)
+            print(f'loss: {loss.item()}, accuracy: {accuracy}')
 
-        iter_n += 1
+            if i % 100 == 0:
+                with torch.no_grad():
+                    accuracys = []
+                    for i_, (inputs_, labels_) in enumerate(test_loader):
+                        labels_ = labels_.float()
+                        inputs_, labels_ = inputs_.to(
+                            device), labels_.to(device)
+                        predicted_ = model(inputs_)
+                        accuracys.append(compute_accuracy(predicted_, labels_))
+                    accuracy_ = sum(accuracys) / len(accuracys)
+                    writer.add_scalar(t+'/test_accuracy', accuracy_, iter_n)
+                print(f'test accuracy:{accuracy_:.6f}')
+                if accuracy_ >= best_test_accuracy:
+                    best_test_accuracy = accuracy_
+                    torch.save(model.state_dict(),
+                               f'{model_prefix}_model_{accuracy_:%}.pth')
 
-        print('Epoch[{}/{}], iter {}, loss:{:.6f}, accuracy:{}'.format(epoch,
-              EPOCHS, i, loss.item(), accuracy))
+            iter_n += 1
 
-writer.close()
+            print('Epoch[{}/{}], iter {}, loss:{:.6f}, accuracy:{}'.format(epoch,
+                                                                           EPOCHS, i, loss.item(), accuracy))
+
+    writer.close()
+
+
+if __name__ == '__main__':
+    train('dataset/BHSig260/Bengali_56x250/', 'BHSigB')
+    # train('dataset/CEDAR/', 'CEDAR')
