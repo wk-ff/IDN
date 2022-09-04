@@ -12,4 +12,7 @@ Non-official implement for IDN, paper:
 
 [BHSig260](https://drive.google.com/file/d/0B29vNACcjvzVc1RfVkg5dUh2b1E): Bengali and Hindi signature dataset
 
+[ChiSig](https://drive.google.com/file/d/176bG9Hp_uX9bJvIFt437wqAbEqEMqsO7/view?usp=sharing): Chinese signature dataset from paper
+> Yan, K., Zhang, Y., Tang, H., Ren, C., Zhang, J., Wang, G., Wang, H. (n.d.). Signature Detection, Restoration, and Verification: A Novel Chinese Document Signature Forgery Detection Benchmark. [CVPRW 2022](https://openaccess.thecvf.com/content/CVPR2022W/SketchDL/papers/Yan_Signature_Detection_Restoration_and_Verification_A_Novel_Chinese_Document_Signature_CVPRW_2022_paper.pdf)
+
 Put dataset in `./dataset` and run `./dataset/preprocess.py` to resize and prepare pairs for training.

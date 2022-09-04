@@ -1,7 +1,7 @@
 import argparse
 from re import L
 import torch
-from dataset.dataset import SignatureDataset
+from dataset.dataset import SignatureLoader
 from models.net import net
 from utils import *
 from sklearn import metrics
@@ -41,7 +41,7 @@ else:
 print(device)
 
 BATCH_SIZE = 32
-test_set = SignatureDataset(
+test_set = SignatureLoader(
     root='dataset/BHSig260/Hindi_56x250/', train=False)
 test_loader = torch.utils.data.DataLoader(
     test_set, batch_size=2*BATCH_SIZE, shuffle=False)

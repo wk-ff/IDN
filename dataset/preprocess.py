@@ -1,7 +1,6 @@
 from PIL import Image
 import os
-import numpy as np
-import random
+import pandas as pd
 
 
 def resize_img(root, w, h):
@@ -78,11 +77,46 @@ def generate_pairs(root: str, mode: str, cutting_point: int):
             generate(f, i)
 
 
+def generate_Chisig_pairs(root: str, cutting_point: int):
+
+    def generate(mode: str, names):
+        f = open(f'{root}/{mode}_pairs.txt', 'w+')
+        for name in names:
+            group = df.get_group(name)
+            subgroup = group.groupby('id')
+            ids = list(group.id.unique())
+            for refIdx in range(len(ids)):
+                # must be forged from id-100
+                if ids[refIdx]> 100:
+                    break
+                refNos = list(subgroup.get_group(ids[refIdx])['no'])
+                # reference-genuine pairs
+                for i in range(len(refNos)):
+                    for j in range(i + 1, len(refNos)):
+                        f.write(f'{name}-{ids[refIdx]}-{refNos[i]}.jpg {name}-{ids[refIdx]}-{refNos[j]}.jpg 1\n')
+                # reference-forged pairs
+                for i in range(len(refNos)):
+                    for testIdx in range(refIdx + 1, len(ids)):
+                        testNos = list(subgroup.get_group(ids[testIdx])['no'])
+                        for j in range(len(testNos)):
+                            f.write(f'{name}-{ids[refIdx]}-{refNos[i]}.jpg {name}-{ids[testIdx]}-{testNos[j]}.jpg 0\n')
+    
+    data = list(filter(lambda dir: dir.endswith('.jpg'), os.listdir(root)))
+    data_tuple = [(d[0], int(d[1]), d[2].split('.')[0]) for d in [d.split('-') for d in data]]
+    df = pd.DataFrame(data_tuple, columns=['name', 'id', 'no'])
+    df = df.sort_values(by=['name', 'id', 'no']).groupby('name')
+
+    generate('train', list(df.groups.keys())[:cutting_point])
+    generate('test', list(df.groups.keys())[cutting_point + 1:])
+
+
 if __name__ == '__main__':
-    resize_img('CEDAR/full_org', 220, 115)
-    resize_img('CEDAR/full_forg', 220, 115)
-    resize_BHSig_img('BHSig260/Bengali', 250, 56, 100)
-    resize_BHSig_img('BHSig260/Hindi', 250, 56, 160)
-    generate_pairs('CEDAR', 'C', 51)
-    generate_pairs('BHSig260/Bengali_resize', 'B', 51)
-    generate_pairs('BHSig260/Hindi_resize', 'H', 101)
+    # resize_img('CEDAR/full_org', 220, 115)
+    # resize_img('CEDAR/full_forg', 220, 115)
+    # resize_BHSig_img('BHSig260/Bengali', 250, 56, 100)
+    # resize_BHSig_img('BHSig260/Hindi', 250, 56, 160)
+    # generate_pairs('CEDAR', 'C', 51)
+    # generate_pairs('BHSig260/Bengali_resize', 'B', 51)
+    # generate_pairs('BHSig260/Hindi_resize', 'H', 101)
+    # resize_img('ChiSig', 220, 115)
+    generate_Chisig_pairs('ChiSig/ChiSig_resize', 400)

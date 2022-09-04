@@ -11,7 +11,6 @@ from tqdm import tqdm
 from dataset.dataset import SignatureLoader
 from models.net import net
 from loss import Loss
-# os.environ['CUDA_VISIBLE_DEVICES']='1'
 
 if torch.cuda.is_available():
     device = 'cuda'
@@ -53,7 +52,6 @@ def train(dataset_root, model_prefix):
 
     criterion = Loss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
     writer = SummaryWriter(log_dir='scalar')
 
@@ -84,7 +82,7 @@ def train(dataset_root, model_prefix):
             writer.add_scalar(t+'/train_accuracy', accuracy, iter_n)
             print(f'loss: {loss.item()}, accuracy: {accuracy}')
 
-            if i % 100 == 0:
+            if (i + 1) % 100 == 0:
                 with torch.no_grad():
                     accuracys = []
                     for i_, (inputs_, labels_) in enumerate(test_loader):
@@ -110,5 +108,6 @@ def train(dataset_root, model_prefix):
 
 
 if __name__ == '__main__':
-    train('dataset/BHSig260/Bengali_56x250/', 'BHSigB')
+    # train('dataset/BHSig260/Bengali_resize/', 'BHSigB')
     # train('dataset/CEDAR/', 'CEDAR')
+    train('dataset/ChiSig/ChiSig_resize/', 'ChiSig')
