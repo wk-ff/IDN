@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 
-class dataset(data.Dataset):
+class SignatureDataset(data.Dataset):
     def __init__(self, root='dataset/CEDAR/', train=True):
         super().__init__()
         if train:

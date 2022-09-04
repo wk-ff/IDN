@@ -1,7 +1,11 @@
 import argparse
+from re import L
 import torch
-from dataset.dataset import dataset
+from dataset.dataset import SignatureDataset
 from models.net import net
+from utils import *
+from sklearn import metrics
+import numpy as np
 
 
 def parse_args():
@@ -10,6 +14,11 @@ def parse_args():
                         help='directory of testing model')
     args = parser.parse_args()
     return args
+
+
+def compute_pred_prob(predicted):
+    predicted = (predicted[0] + predicted[1] + predicted[2]) / 3
+    return predicted.view(-1)
 
 
 def compute_accuracy(predicted, labels):
@@ -32,7 +41,8 @@ else:
 print(device)
 
 BATCH_SIZE = 32
-test_set = dataset(train=False)
+test_set = SignatureDataset(
+    root='dataset/BHSig260/Hindi_56x250/', train=False)
 test_loader = torch.utils.data.DataLoader(
     test_set, batch_size=2*BATCH_SIZE, shuffle=False)
 args = parse_args()
@@ -40,12 +50,21 @@ assert args.model_dir != '', 'model_dir is required'
 
 model = net().to(device)
 model.load_state_dict(torch.load(args.model_dir))
+
+predicted = []
+labels = []
 with torch.no_grad():
     accuracys = []
     for i_, (inputs_, labels_) in enumerate(test_loader):
         labels_ = labels_.float()
         inputs_, labels_ = inputs_.to(device), labels_.to(device)
         predicted_ = model(inputs_)
+        predicted += list(compute_pred_prob(predicted_).detach().cpu().numpy())
+        labels += list(labels_.detach().cpu().numpy())
         accuracys.append(compute_accuracy(predicted_, labels_))
     accuracy_ = sum(accuracys) / len(accuracys)
 print(f'test accuracy:{accuracy_:%}')
+
+fpr, tpr, thresholds = metrics.roc_curve(labels, predicted)
+print(f'AUC: {metrics.auc(fpr, tpr)}')
+plot_roc_curve(fpr, tpr, 'BHSig-H')
