@@ -8,7 +8,7 @@ from tensorboardX import SummaryWriter
 import time
 from tqdm import tqdm
 
-from dataset.dataset import SignatureDataset
+from dataset.dataset import SignatureLoader
 from models.net import net
 from loss import Loss
 # os.environ['CUDA_VISIBLE_DEVICES']='1'
@@ -42,8 +42,8 @@ def train(dataset_root, model_prefix):
     np.random.seed(0)
     torch.manual_seed(1)
 
-    train_set = SignatureDataset(train=True, root=dataset_root)
-    test_set = SignatureDataset(train=False, root=dataset_root)
+    train_set = SignatureLoader(train=True, root=dataset_root)
+    test_set = SignatureLoader(train=False, root=dataset_root)
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = torch.utils.data.DataLoader(
