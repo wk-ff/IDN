@@ -5,7 +5,7 @@ from dataset.dataset import SignatureLoader
 from models.net import net
 from utils import *
 from sklearn import metrics
-import numpy as np
+from tqdm import tqdm
 
 
 def parse_args():
@@ -42,7 +42,7 @@ print(device)
 
 BATCH_SIZE = 32
 test_set = SignatureLoader(
-    root='dataset/BHSig260/Hindi_56x250/', train=False)
+    root='dataset/ChiSig/ChiSig_resize/', train=False)
 test_loader = torch.utils.data.DataLoader(
     test_set, batch_size=2*BATCH_SIZE, shuffle=False)
 args = parse_args()
@@ -55,7 +55,7 @@ predicted = []
 labels = []
 with torch.no_grad():
     accuracys = []
-    for i_, (inputs_, labels_) in enumerate(test_loader):
+    for inputs_, labels_ in tqdm(test_loader):
         labels_ = labels_.float()
         inputs_, labels_ = inputs_.to(device), labels_.to(device)
         predicted_ = model(inputs_)
@@ -66,5 +66,5 @@ with torch.no_grad():
 print(f'test accuracy:{accuracy_:%}')
 
 fpr, tpr, thresholds = metrics.roc_curve(labels, predicted)
-print(f'AUC: {metrics.auc(fpr, tpr)}')
-plot_roc_curve(fpr, tpr, 'BHSig-H')
+auc = metrics.auc(fpr, tpr)
+plot_roc_curve(auc, fpr, tpr, 'ChiSig')
