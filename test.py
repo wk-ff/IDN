@@ -68,3 +68,5 @@ print(f'test accuracy:{accuracy_:%}')
 fpr, tpr, thresholds = metrics.roc_curve(labels, predicted)
 print(f'AUC: {metrics.auc(fpr, tpr)}')
 plot_roc_curve(fpr, tpr, 'BHSig-H')
+
+plot_far_frr_curve(far=fpr, frr=1-tpr, threshold=thresholds)
