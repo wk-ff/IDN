@@ -85,7 +85,7 @@ def train(dataset_root, model_prefix):
             if (i + 1) % 100 == 0:
                 with torch.no_grad():
                     accuracys = []
-                    for i_, (inputs_, labels_) in enumerate(test_loader):
+                    for inputs_, labels_ in tqdm(test_loader):
                         labels_ = labels_.float()
                         inputs_, labels_ = inputs_.to(
                             device), labels_.to(device)
@@ -110,4 +110,5 @@ def train(dataset_root, model_prefix):
 if __name__ == '__main__':
     # train('dataset/BHSig260/Bengali_resize/', 'BHSigB')
     # train('dataset/CEDAR/', 'CEDAR')
-    train('dataset/ChiSig/ChiSig_resize/', 'ChiSig')
+    # train('dataset/ChiSig/ChiSig_resize/', 'ChiSig')
+    train('dataset/SigComp2011/', 'SigComp')
