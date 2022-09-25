@@ -12,7 +12,7 @@ def plot_roc_curve(fpr, tpr, filename):
     plt.plot([0, 1], [0, 1], color='green', linestyle='--')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Receiver Operating Characteristic Curve')
+    plt.title(f'ROC Curve with AUC: {auc:.2%}')
     plt.legend()
     plt.savefig(os.path.join('imgs', 'plot', filename))
     plt.show()

@@ -4,11 +4,12 @@
 /dataset/CEDAR
 /dataset/BHSig260
 /dataset/ChiSig
-/dataset/sigComp
+/dataset/SigComp2011
 /scalar
 /imgs
 *.pth
 *.txt
+*.png
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
