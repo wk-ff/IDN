@@ -48,7 +48,7 @@ def train(dataset_root, model_prefix):
     test_loader = torch.utils.data.DataLoader(
         test_set, batch_size=2*BATCH_SIZE, shuffle=False)
 
-    model = net().to(device)
+    model = net(attention='IDN').to(device)
 
     criterion = Loss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -110,5 +110,5 @@ def train(dataset_root, model_prefix):
 if __name__ == '__main__':
     # train('dataset/BHSig260/Bengali_resize/', 'BHSigB')
     # train('dataset/CEDAR/', 'CEDAR')
-    # train('dataset/ChiSig/ChiSig_resize/', 'ChiSig')
-    train('dataset/SigComp2011/', 'SigComp')
+    train('dataset/ChiSig/ChiSig_resize/', 'ChiSig')
+    # train('dataset/SigComp2011/', 'SigComp')

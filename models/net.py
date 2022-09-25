@@ -4,10 +4,10 @@ from models.stream import stream
 import torchvision
 
 class net(nn.Module):
-    def __init__(self):
+    def __init__(self, attention='IDN'):
         super(net, self).__init__()
 
-        self.stream = stream()
+        self.stream = stream(attention)
         self.GAP = nn.AdaptiveAvgPool2d((1,1))
         self.classifier = nn.Sequential(
             nn.Linear(256, 256),

@@ -77,7 +77,8 @@ with torch.no_grad():
 print(f'test accuracy:{accuracy_:%}')
 
 fpr, tpr, thresholds = metrics.roc_curve(labels, predicted)
-print(f'AUC: {metrics.auc(fpr, tpr)}')
-plot_roc_curve(fpr, tpr, 'ChiSig')
+auc = metrics.auc(fpr, tpr)
+print(f'AUC: {auc}')
+plot_roc_curve(auc, fpr, tpr, 'ChiSig')
 plot_far_frr_curve(fpr=fpr, fnr=1-tpr, threshold=thresholds)
 draw_failed_sample(failed_pred_samples)

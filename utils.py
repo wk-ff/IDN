@@ -5,16 +5,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+post_fix = datetime.now().strftime('%m%d_%H%M%S')
 
-
-def plot_roc_curve(fpr, tpr, filename):
+def plot_roc_curve(auc, fpr, tpr, filename):
     plt.plot(fpr, tpr, color='red', label='ROC')
     plt.plot([0, 1], [0, 1], color='green', linestyle='--')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.title(f'ROC Curve with AUC: {auc:.2%}')
     plt.legend()
-    plt.savefig(os.path.join('imgs', 'plot', filename))
+    plt.savefig(os.path.join('imgs', 'plot', f'{filename}_{post_fix}'))
     plt.show()
 
 
@@ -33,14 +33,14 @@ def plot_far_frr_curve(fpr, fnr, threshold):
     ax.legend(loc='upper right', shadow=True, fontsize='x-large')
 
     plt.title(f'EER: {fpr[eer_idx]:.2%}')
-    plt.savefig(os.path.join('imgs', 'plot', 'curve.jpg'))
+    plt.savefig(os.path.join('imgs', 'plot', f'curve_{post_fix}'))
 
 
 def draw_failed_sample(samples):
     rows = 1
     columns = 2
     
-    folder_name = os.path.join('imgs', 'failed_sample', datetime.now().strftime('%m%d_%H%M%S'))
+    folder_name = os.path.join('imgs', 'failed_sample', post_fix)
     os.mkdir(folder_name)
     os.mkdir(os.path.join(folder_name, 'fp'))
     os.mkdir(os.path.join(folder_name, 'fn'))
