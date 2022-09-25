@@ -1,6 +1,7 @@
 from PIL import Image
 import os
 import pandas as pd
+import random
 
 
 def resize_img(root, w=220, h=115):
@@ -76,7 +77,7 @@ def generate_pairs(root: str, mode: str, cutting_point: int):
         # reference-forgered pairs
         org_forg = [(j, k) for j in range(1, num_genuine + 1)
                     for k in range(1, num_forged + 1)]
-        for (j, k) in org_forg:
+        for (j, k) in random.choices(org_forg, k=276):
             file.write(pair_string_forged(i, j, k))
 
     with open(f'{root}/train_pairs.txt', 'w') as f:
@@ -106,11 +107,20 @@ def generate_Chisig_pairs(root: str, cutting_point: int):
                     for j in range(i + 1, len(refNos)):
                         f.write(f'{name}-{ids[refIdx]}-{refNos[i]}.jpg {name}-{ids[refIdx]}-{refNos[j]}.jpg 1\n')
                 # reference-forged pairs
+                if len(ids) == 1:
+                    continue
+                org_forg = []
                 for i in range(len(refNos)):
-                    for testIdx in range(refIdx + 1, len(ids)):
+                    for testIdx in range(len(ids)):
+                        if testIdx == refIdx:
+                            continue
                         testNos = list(subgroup.get_group(ids[testIdx])['no'])
+                        
                         for j in range(len(testNos)):
-                            f.write(f'{name}-{ids[refIdx]}-{refNos[i]}.jpg {name}-{ids[testIdx]}-{testNos[j]}.jpg 0\n')
+                            org_forg.append((refNos[i], ids[testIdx], testNos[j]))
+                    
+                for (refNo, testId, testNo) in random.choices(org_forg, k=(len(refNos)-1)*len(refNos)//2):
+                    f.write(f'{name}-{ids[refIdx]}-{refNo}.jpg {name}-{testId}-{testNo}.jpg 0\n')
     
     data = list(filter(lambda dir: dir.endswith('.jpg'), os.listdir(root)))
     data_tuple = [(d[0], int(d[1]), d[2].split('.')[0]) for d in [d.split('-') for d in data]]
