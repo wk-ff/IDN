@@ -8,7 +8,6 @@
 /scalar
 /imgs
 *.pth
-*.txt
 *.png
 
 ### Python ###
