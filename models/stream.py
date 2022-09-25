@@ -64,34 +64,21 @@ class stream(nn.Module):
 
 
 	def attention(self, inverse, discrimnative):
-		# Conv = nn.Sequential(
-		# 	nn.Conv2d(inverse.size()[1], inverse.size()[1], 3, stride=1, padding=1),
-		# 	nn.Sigmoid()
-		# )
 		GAP = nn.AdaptiveAvgPool2d((1, 1))
 		sigmoid = nn.Sigmoid()
-		# fc = nn.Sequential(
-		# 	nn.Linear(inverse.size()[1], inverse.size()[1]),
-		# 	nn.Sigmoid()
-		# )
 
-		# print(inverse.size(), discrimnative.size())
 		up_sample = nn.functional.interpolate(inverse, (discrimnative.size()[2], discrimnative.size()[3]), mode='nearest')
-		# g = self.Conv(up_sample)
 		conv = getattr(self, 'Conv_' + str(up_sample.size()[1]), 'None')
 		g = conv(up_sample)
 		g = sigmoid(g)
-		# print(g.size(), discrimnative.size())
 		tmp = g * discrimnative + discrimnative
 		f = GAP(tmp)
 		f = f.view(f.size()[0], 1, f.size()[1])
 		
-		# f = self.fc(f)
 		fc = getattr(self, 'fc_' + str(f.size(2)), 'None')
 		f = fc(f)
 		f = sigmoid(f)
 		f = f.view(-1, f.size()[2], 1, 1)
-		# print(tmp.size(), f.size())
 		out = tmp * f
 
 		return out
