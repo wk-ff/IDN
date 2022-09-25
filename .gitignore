@@ -6,6 +6,7 @@
 /dataset/ChiSig
 /dataset/sigComp
 /scalar
+/imgs
 *.pth
 *.txt
 
