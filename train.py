@@ -78,8 +78,10 @@ def train(dataset_root, model_prefix):
 
             accuracy = compute_accuracy(predicted, labels)
 
-            writer.add_scalar(t+'/train_loss', loss.item(), iter_n)
-            writer.add_scalar(t+'/train_accuracy', accuracy, iter_n)
+            writer.add_scalar(
+                f'{model_prefix} {t}/train_loss', loss.item(), iter_n)
+            writer.add_scalar(
+                f'{model_prefix} {t}/train_accuracy', accuracy, iter_n)
             print(f'loss: {loss.item()}, accuracy: {accuracy}')
 
             if (i + 1) % 100 == 0:
@@ -92,12 +94,13 @@ def train(dataset_root, model_prefix):
                         predicted_ = model(inputs_)
                         accuracys.append(compute_accuracy(predicted_, labels_))
                     accuracy_ = sum(accuracys) / len(accuracys)
-                    writer.add_scalar(t+'/test_accuracy', accuracy_, iter_n)
+                    writer.add_scalar(
+                        f'{model_prefix} {t}/test_accuracy', accuracy_, iter_n)
                 print(f'test accuracy:{accuracy_:.6f}')
                 if accuracy_ >= best_test_accuracy:
                     best_test_accuracy = accuracy_
                     torch.save(model.state_dict(),
-                               f'{model_prefix}_model_{accuracy_:%}.pth')
+                               f'{model_prefix}_{accuracy_:%}.pth')
 
             iter_n += 1
 

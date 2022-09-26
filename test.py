@@ -29,8 +29,9 @@ def vote(predicted):
 
     predicted[predicted < 2] = 0
     predicted[predicted >= 2] = 1
-    
+
     return predicted.view(-1)
+
 
 def compute_accuracy(predicted, labels):
     predicted = vote(predicted)
@@ -41,6 +42,7 @@ def compute_accuracy(predicted, labels):
 def get_failed_pred_indices(predicted, labels):
     predicted = vote(predicted)
     return [i for i in range(len(predicted)) if predicted[i] != labels[i]]
+
 
 if torch.cuda.is_available():
     device = 'cuda'
@@ -72,7 +74,8 @@ with torch.no_grad():
         labels += list(labels_.detach().cpu().numpy())
         accuracys.append(compute_accuracy(predicted_, labels_))
         failed_pred_indices = get_failed_pred_indices(predicted_, labels_)
-        failed_pred_samples += [(inputs_[i].detach().cpu().numpy(), labels_[i].item()) for i in failed_pred_indices]
+        failed_pred_samples += [(inputs_[i].detach().cpu().numpy(),
+                                 labels_[i].item()) for i in failed_pred_indices]
     accuracy_ = sum(accuracys) / len(accuracys)
 print(f'test accuracy:{accuracy_:%}')
 
@@ -80,5 +83,5 @@ fpr, tpr, thresholds = metrics.roc_curve(labels, predicted)
 auc = metrics.auc(fpr, tpr)
 print(f'AUC: {auc}')
 plot_roc_curve(auc, fpr, tpr, 'ChiSig')
-plot_far_frr_curve(fpr=fpr, fnr=1-tpr, threshold=thresholds)
+plot_far_frr_curve(fpr=fpr, fnr=1-tpr, threshold=thresholds, filename='ChiSig')
 draw_failed_sample(failed_pred_samples)

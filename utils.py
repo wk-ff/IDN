@@ -7,6 +7,7 @@ import numpy as np
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 post_fix = datetime.now().strftime('%m%d_%H%M%S')
 
+
 def plot_roc_curve(auc, fpr, tpr, filename):
     plt.plot(fpr, tpr, color='red', label='ROC')
     plt.plot([0, 1], [0, 1], color='green', linestyle='--')
@@ -18,7 +19,7 @@ def plot_roc_curve(auc, fpr, tpr, filename):
     plt.show()
 
 
-def plot_far_frr_curve(fpr, fnr, threshold):
+def plot_far_frr_curve(fpr, fnr, threshold, filename):
     _, ax = plt.subplots()
 
     ax.plot(threshold, fpr, 'r--', label='FAR')
@@ -32,19 +33,19 @@ def plot_far_frr_curve(fpr, fnr, threshold):
 
     ax.legend(loc='upper right', shadow=True, fontsize='x-large')
 
-    plt.title(f'EER: {fpr[eer_idx]:.2%}')
-    plt.savefig(os.path.join('imgs', 'plot', f'curve_{post_fix}'))
+    plt.title(f'{filename} EER: {fpr[eer_idx]:.2%}')
+    plt.savefig(os.path.join('imgs', 'plot', f'curve_{filename}_{post_fix}'))
 
 
 def draw_failed_sample(samples):
     rows = 1
     columns = 2
-    
+
     folder_name = os.path.join('imgs', 'failed_sample', post_fix)
     os.mkdir(folder_name)
     os.mkdir(os.path.join(folder_name, 'fp'))
     os.mkdir(os.path.join(folder_name, 'fn'))
-    
+
     for i, (input, label) in enumerate(samples):
         reference = input[0]
         test = input[1]
@@ -52,7 +53,7 @@ def draw_failed_sample(samples):
 
         fig = plt.figure(figsize=(8, 3))
         plt.suptitle(f'Ground Truth: {label} Predict: {int(not label)}')
-        
+
         fig.add_subplot(rows, columns, 1)
         plt.imshow(reference, cmap='gray')
         plt.xticks([])
@@ -65,5 +66,6 @@ def draw_failed_sample(samples):
         plt.yticks([])
         plt.title('Test')
 
-        plt.savefig(os.path.join(folder_name, 'fn' if label == 1 else 'fp', f'index_{i}.jpg'))
+        plt.savefig(os.path.join(folder_name, 'fn' if label ==
+                    1 else 'fp', f'index_{i}.jpg'))
         plt.close()
