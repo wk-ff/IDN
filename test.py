@@ -1,4 +1,3 @@
-import argparse
 from re import L
 import torch
 from dataset.dataset import SignatureLoader
@@ -6,14 +5,6 @@ from models.net import net
 from utils import *
 from sklearn import metrics
 from tqdm import tqdm
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_dir', default='', type=str,
-                        help='directory of testing model')
-    args = parser.parse_args()
-    return args
 
 
 def compute_pred_prob(predicted):
@@ -51,11 +42,10 @@ else:
 print(device)
 
 BATCH_SIZE = 32
-test_set = SignatureLoader(
-    root='dataset/ChiSig/ChiSig_resize/', train=False)
+args = parse_args()
+test_set = SignatureLoader(root=args.dataset_dir, train=False)
 test_loader = torch.utils.data.DataLoader(
     test_set, batch_size=2*BATCH_SIZE, shuffle=False)
-args = parse_args()
 assert args.model_dir != '', 'model_dir is required'
 
 model = net().to(device)
@@ -82,6 +72,7 @@ print(f'test accuracy:{accuracy_:%}')
 fpr, tpr, thresholds = metrics.roc_curve(labels, predicted)
 auc = metrics.auc(fpr, tpr)
 print(f'AUC: {auc}')
-plot_roc_curve(auc, fpr, tpr, 'ChiSig')
-plot_far_frr_curve(fpr=fpr, fnr=1-tpr, threshold=thresholds, filename='ChiSig')
+plot_roc_curve(auc, fpr, tpr, args.model_prefix)
+plot_far_frr_curve(fpr=fpr, fnr=1-tpr, threshold=thresholds,
+                   filename=args.model_prefix)
 draw_failed_sample(failed_pred_samples)

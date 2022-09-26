@@ -11,12 +11,14 @@ from tqdm import tqdm
 from dataset.dataset import SignatureLoader
 from models.net import net
 from loss import Loss
+from utils import *
 
 if torch.cuda.is_available():
     device = 'cuda'
 else:
     device = 'cpu'
 print(device)
+args = parse_args()
 
 
 def compute_accuracy(predicted, labels):
@@ -32,23 +34,23 @@ def compute_accuracy(predicted, labels):
     return accuracy
 
 
-def train(dataset_root, model_prefix):
+def train():
 
     BATCH_SIZE = 32
-    EPOCHS = 1
+    EPOCHS = args.n_epoch
     LEARNING_RATE = 0.001
 
     np.random.seed(0)
     torch.manual_seed(1)
 
-    train_set = SignatureLoader(train=True, root=dataset_root)
-    test_set = SignatureLoader(train=False, root=dataset_root)
+    train_set = SignatureLoader(train=True, root=args.dataset_dir)
+    test_set = SignatureLoader(train=False, root=args.dataset_dir)
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = torch.utils.data.DataLoader(
         test_set, batch_size=2*BATCH_SIZE, shuffle=False)
 
-    model = net(attention='IDN').to(device)
+    model = net(attention=args.attn).to(device)
 
     criterion = Loss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -79,9 +81,9 @@ def train(dataset_root, model_prefix):
             accuracy = compute_accuracy(predicted, labels)
 
             writer.add_scalar(
-                f'{model_prefix} {t}/train_loss', loss.item(), iter_n)
+                f'{args.model_prefix} {t}/train_loss', loss.item(), iter_n)
             writer.add_scalar(
-                f'{model_prefix} {t}/train_accuracy', accuracy, iter_n)
+                f'{args.model_prefix} {t}/train_accuracy', accuracy, iter_n)
             print(f'loss: {loss.item()}, accuracy: {accuracy}')
 
             if (i + 1) % 100 == 0:
@@ -95,12 +97,12 @@ def train(dataset_root, model_prefix):
                         accuracys.append(compute_accuracy(predicted_, labels_))
                     accuracy_ = sum(accuracys) / len(accuracys)
                     writer.add_scalar(
-                        f'{model_prefix} {t}/test_accuracy', accuracy_, iter_n)
+                        f'{args.model_prefix} {t}/test_accuracy', accuracy_, iter_n)
                 print(f'test accuracy:{accuracy_:.6f}')
                 if accuracy_ >= best_test_accuracy:
                     best_test_accuracy = accuracy_
                     torch.save(model.state_dict(),
-                               f'{model_prefix}_{accuracy_:%}.pth')
+                               f'{args.model_prefix}_{accuracy_:%}.pth')
 
             iter_n += 1
 
@@ -111,7 +113,4 @@ def train(dataset_root, model_prefix):
 
 
 if __name__ == '__main__':
-    # train('dataset/BHSig260/Bengali_resize/', 'BHSigB')
-    # train('dataset/CEDAR/', 'CEDAR')
-    train('dataset/ChiSig/ChiSig_resize/', 'ChiSig')
-    # train('dataset/SigComp2011/', 'SigComp')
+    train()

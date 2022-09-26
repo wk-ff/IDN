@@ -1,3 +1,4 @@
+import argparse
 import os
 import torch
 from datetime import datetime
@@ -6,6 +7,21 @@ import numpy as np
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 post_fix = datetime.now().strftime('%m%d_%H%M%S')
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--attn', default='IDN', type=str, help='type of attention module')
+    parser.add_argument('--model_dir', default='', type=str,
+                        help='directory of testing model')
+    parser.add_argument('--n_epoch', default=1, type=int,
+                        help='number of epoch to train')
+    parser.add_argument('--dataset_dir', default='dataset/CEDAR/', type=str,
+                        help='directory of dataset')
+    parser.add_argument('--model_prefix', default='CEDAR', type=str,
+                        help='prefix of model name')
+    args = parser.parse_args()
+    return args
 
 
 def plot_roc_curve(auc, fpr, tpr, filename):
