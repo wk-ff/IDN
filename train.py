@@ -8,10 +8,9 @@ from tensorboardX import SummaryWriter
 import time
 from tqdm import tqdm
 
-from dataset.dataset import SignatureDataset
+from dataset.dataset import SignatureLoader
 from models.net import net
 from loss import Loss
-# os.environ['CUDA_VISIBLE_DEVICES']='1'
 
 if torch.cuda.is_available():
     device = 'cuda'
@@ -42,8 +41,8 @@ def train(dataset_root, model_prefix):
     np.random.seed(0)
     torch.manual_seed(1)
 
-    train_set = SignatureDataset(train=True, root=dataset_root)
-    test_set = SignatureDataset(train=False, root=dataset_root)
+    train_set = SignatureLoader(train=True, root=dataset_root)
+    test_set = SignatureLoader(train=False, root=dataset_root)
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = torch.utils.data.DataLoader(
@@ -53,7 +52,6 @@ def train(dataset_root, model_prefix):
 
     criterion = Loss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
     writer = SummaryWriter(log_dir='scalar')
 
@@ -84,10 +82,10 @@ def train(dataset_root, model_prefix):
             writer.add_scalar(t+'/train_accuracy', accuracy, iter_n)
             print(f'loss: {loss.item()}, accuracy: {accuracy}')
 
-            if i % 100 == 0:
+            if (i + 1) % 100 == 0:
                 with torch.no_grad():
                     accuracys = []
-                    for i_, (inputs_, labels_) in enumerate(test_loader):
+                    for inputs_, labels_ in tqdm(test_loader):
                         labels_ = labels_.float()
                         inputs_, labels_ = inputs_.to(
                             device), labels_.to(device)
@@ -110,5 +108,7 @@ def train(dataset_root, model_prefix):
 
 
 if __name__ == '__main__':
-    train('dataset/BHSig260/Bengali_56x250/', 'BHSigB')
+    # train('dataset/BHSig260/Bengali_resize/', 'BHSigB')
     # train('dataset/CEDAR/', 'CEDAR')
+    # train('dataset/ChiSig/ChiSig_resize/', 'ChiSig')
+    train('dataset/SigComp2011/', 'SigComp')

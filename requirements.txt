@@ -1,0 +1,10 @@
+gdown
+pandas
+pynvml
+matplotlib
+opencv_python>=4.4.0.44
+scikit_learn>=1.1.2
+tensorboardX>=2.5.1
+torch>=1.8.0
+torchvision>=0.9.0
+tqdm

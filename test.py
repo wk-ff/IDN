@@ -1,11 +1,11 @@
 import argparse
 from re import L
 import torch
-from dataset.dataset import SignatureDataset
+from dataset.dataset import SignatureLoader
 from models.net import net
 from utils import *
 from sklearn import metrics
-import numpy as np
+from tqdm import tqdm
 
 
 def parse_args():
@@ -21,7 +21,7 @@ def compute_pred_prob(predicted):
     return predicted.view(-1)
 
 
-def compute_accuracy(predicted, labels):
+def vote(predicted):
     for i in range(3):
         predicted[i][predicted[i] > 0.5] = 1
         predicted[i][predicted[i] <= 0.5] = 0
@@ -29,10 +29,18 @@ def compute_accuracy(predicted, labels):
 
     predicted[predicted < 2] = 0
     predicted[predicted >= 2] = 1
-    predicted = predicted.view(-1)
+    
+    return predicted.view(-1)
+
+def compute_accuracy(predicted, labels):
+    predicted = vote(predicted)
     accuracy = torch.sum(predicted == labels).item() / labels.size()[0]
     return accuracy
 
+
+def get_failed_pred_indices(predicted, labels):
+    predicted = vote(predicted)
+    return [i for i in range(len(predicted)) if predicted[i] != labels[i]]
 
 if torch.cuda.is_available():
     device = 'cuda'
@@ -41,8 +49,8 @@ else:
 print(device)
 
 BATCH_SIZE = 32
-test_set = SignatureDataset(
-    root='dataset/BHSig260/Hindi_56x250/', train=False)
+test_set = SignatureLoader(
+    root='dataset/ChiSig/ChiSig_resize/', train=False)
 test_loader = torch.utils.data.DataLoader(
     test_set, batch_size=2*BATCH_SIZE, shuffle=False)
 args = parse_args()
@@ -53,18 +61,23 @@ model.load_state_dict(torch.load(args.model_dir))
 
 predicted = []
 labels = []
+failed_pred_samples = []
 with torch.no_grad():
     accuracys = []
-    for i_, (inputs_, labels_) in enumerate(test_loader):
+    for inputs_, labels_ in tqdm(test_loader):
         labels_ = labels_.float()
         inputs_, labels_ = inputs_.to(device), labels_.to(device)
         predicted_ = model(inputs_)
         predicted += list(compute_pred_prob(predicted_).detach().cpu().numpy())
         labels += list(labels_.detach().cpu().numpy())
         accuracys.append(compute_accuracy(predicted_, labels_))
+        failed_pred_indices = get_failed_pred_indices(predicted_, labels_)
+        failed_pred_samples += [(inputs_[i].detach().cpu().numpy(), labels_[i].item()) for i in failed_pred_indices]
     accuracy_ = sum(accuracys) / len(accuracys)
 print(f'test accuracy:{accuracy_:%}')
 
 fpr, tpr, thresholds = metrics.roc_curve(labels, predicted)
 print(f'AUC: {metrics.auc(fpr, tpr)}')
-plot_roc_curve(fpr, tpr, 'BHSig-H')
+plot_roc_curve(fpr, tpr, 'ChiSig')
+plot_far_frr_curve(fpr=fpr, fnr=1-tpr, threshold=thresholds)
+draw_failed_sample(failed_pred_samples)

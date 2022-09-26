@@ -3,7 +3,6 @@ import torch.nn as nn
 
 import cv2
 
-
 class stream(nn.Module):
     def __init__(self):
         super(stream, self).__init__()
