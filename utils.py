@@ -3,6 +3,8 @@ import torch
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+from models.net import net
+from dataset.dataset import SignatureLoader
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -39,12 +41,13 @@ def plot_far_frr_curve(fpr, fnr, threshold):
 def draw_failed_sample(samples):
     rows = 1
     columns = 2
-    
-    folder_name = os.path.join('imgs', 'failed_sample', datetime.now().strftime('%m%d_%H%M%S'))
+
+    folder_name = os.path.join(
+        'imgs', 'failed_sample', datetime.now().strftime('%m%d_%H%M%S'))
     os.mkdir(folder_name)
     os.mkdir(os.path.join(folder_name, 'fp'))
     os.mkdir(os.path.join(folder_name, 'fn'))
-    
+
     for i, (input, label) in enumerate(samples):
         reference = input[0]
         test = input[1]
@@ -52,7 +55,7 @@ def draw_failed_sample(samples):
 
         fig = plt.figure(figsize=(8, 3))
         plt.suptitle(f'Ground Truth: {label} Predict: {int(not label)}')
-        
+
         fig.add_subplot(rows, columns, 1)
         plt.imshow(reference, cmap='gray')
         plt.xticks([])
@@ -65,5 +68,41 @@ def draw_failed_sample(samples):
         plt.yticks([])
         plt.title('Test')
 
-        plt.savefig(os.path.join(folder_name, 'fn' if label == 1 else 'fp', f'index_{i}.jpg'))
+        plt.savefig(os.path.join(folder_name, 'fn' if label ==
+                    1 else 'fp', f'index_{i}.jpg'))
         plt.close()
+
+
+def visualize_stream(model_dir, dataset_dir, filename, data_idx):
+    # get model
+    model = net().to(device)
+    model.load_state_dict(torch.load(model_dir))
+
+    # use forward hooks to get activation map
+    # https://discuss.pytorch.org/t/visualize-feature-map/29597/2
+    activation = {}
+
+    def get_activation(name):
+        def hook(model, input, output):
+            activation[name] = output.detach().cpu().numpy()
+        return hook
+
+    for i in range(4):
+        model.stream.stream[4 + i * 5] \
+                    .register_forward_hook(get_activation(f'block{i + 1}'))
+
+    # get data
+    dataset = SignatureLoader(root=dataset_dir, train=False)
+    data, _ = dataset[data_idx]
+    data = data.to(device).unsqueeze_(0)
+    _ = model(data)
+
+    # plot 4 blocks' feature map
+    fig, ax = plt.subplots(4)
+    for i in range(4):
+        act = activation[f'block{i + 1}'].squeeze()
+        ax[i].imshow(np.mean(act, axis=0))
+        ax[i].set_title(f'block{i + 1}')
+        ax[i].axis('off')
+    plt.tight_layout()
+    plt.savefig(os.path.join('imgs', 'vis', filename), dpi=600)
